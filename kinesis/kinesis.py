@@ -2,7 +2,6 @@ import json
 import logging
 import os
 
-
 import boto3
 from botocore.exceptions import ClientError
 
@@ -20,22 +19,35 @@ class KinesisStream:
     def __init__(self):
         self.client = create_kinesis_client(profile_name)
 
-
-    def create_stream(self, stream_name, shard_count):
+    def create_stream(self, stream_name, shard_count=None):
         """
         Create
+        :param stream_mode:
         :param stream_name:
         :param shard_count:
         :return:
         """
         try:
-            return self.client.create_stream(StreamName=stream_name, ShardCount=shard_count)
+            if shard_count is None:
+                response = self.client.create_stream(
+                    StreamName=stream_name,
+                    StreamModeDetails={
+                        'StreamMode': 'ON_DEMAND'
+                    }
+                )
+            else:
+                response = self.client.create_stream(
+                    StreamName=stream_name,
+                    ShardCount=shard_count,
+                    StreamModeDetails={
+                        'StreamMode': 'PROVISIONED'
+                    }
+                )
         except ClientError as e:
             if "already exists" in e.response.get("Error").get("Message"):
-                logger.info("stream 5% already exists")
+                logger.info("stream s% already exists", stream_name)
             else:
                 raise
-
 
     def describe(self, stream_name):
         """
@@ -48,7 +60,6 @@ class KinesisStream:
         except ClientError:
             logger.exception("Couldn't describe %s.", stream_name)
             raise
-
 
     def delete(self, stream_name):
         try:
@@ -64,10 +75,10 @@ class KinesisStream:
         except ClientError:
             logger.exception("Coundn't list streams")
 
-
-    def put_record(self, stream_name, data, partition_key):
+    def put_record(self, stream_name: str, data, partition_key):
         """
         Put data into the stream. The data is formatted as JSON before it is passed to the stream.
+        :param stream_name:
         :param data:
         :param partition_key:
         :return:
@@ -90,10 +101,10 @@ class KinesisStream:
         try:
             return self.client.put_records(
                 StreamName=stream_name,
-                Records = list(
-                    map(lambda e: { "Data": json.dumps(e), "PartitionKey": partition_key},
+                Records=list(
+                    map(lambda e: {"Data": json.dumps(e), "PartitionKey": partition_key},
                         data
-                    )
+                        )
                 )
             )
         except ClientError:
@@ -102,7 +113,7 @@ class KinesisStream:
 
     def get_shards_info(self, stream_name: str):
         try:
-            response =self.describe(stream_name=stream_name)
+            response = self.describe(stream_name=stream_name)
             return [shard for shard in response.get("StreamDescription").get("Shards")]
         except ClientError:
             logger.exception("Error on client describe %s", stream_name)
@@ -121,5 +132,5 @@ class KinesisStream:
             yield records
             shard_interator = response['NextShardIterator']
 
-kinesis_stream = KinesisStream()
 
+kinesis_stream = KinesisStream()
