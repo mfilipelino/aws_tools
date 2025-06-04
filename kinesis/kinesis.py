@@ -45,7 +45,7 @@ class KinesisStream:
                 )
         except ClientError as e:
             if "already exists" in e.response.get("Error").get("Message"):
-                logger.info("stream s% already exists", stream_name)
+                logger.info("stream %s already exists", stream_name)
             else:
                 raise
 
@@ -84,18 +84,17 @@ class KinesisStream:
         :return:
         """
         try:
-            return self.client.put_record(
+            response = self.client.put_record(
                 StreamName=stream_name,
                 Data=json.dumps(data),
                 PartitionKey=partition_key
             )
             logger.info("Put record in stream")
+            return response
 
         except ClientError:
             logger.exception("Couldn't put record in stream %s", stream_name)
             raise
-        else:
-            return response
 
     def put_records(self, stream_name: str, data: list[dict], partition_key: str):
         try:
