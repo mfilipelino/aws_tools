@@ -11,7 +11,8 @@ profile_name = os.environ.get("PROFILE_NAME", "sandbox")
 
 def create_s3_client(profile_name):
     """Create a boto3 S3 client using the configured AWS profile."""
-    return boto3.Session(profile_name=profile_name).client('s3')
+    session = boto3.Session(profile_name=profile_name)
+    return session.client('s3')
 
 
 class S3:
