@@ -10,7 +10,8 @@ profile_name = os.environ.get("PROFILE_NAME", "sandbox")
 
 
 def create_s3_client(profile_name):
-    return boto3.Session(profile_name=profile_name).client('kinesis')
+    """Create a boto3 S3 client using the configured AWS profile."""
+    return boto3.Session(profile_name=profile_name).client('s3')
 
 
 class S3:
