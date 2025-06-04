@@ -51,7 +51,7 @@ class KinesisStream:
 
     def describe(self, stream_name):
         """
-        Describre stream
+        Describe stream
         :param stream_name:
         :return:
         """
