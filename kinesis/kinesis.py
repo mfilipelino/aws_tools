@@ -20,11 +20,14 @@ class KinesisStream:
         self.client = create_kinesis_client(profile_name)
 
     def create_stream(self, stream_name, shard_count=None):
-        """
-        Create
-        :param stream_mode:
-        :param stream_name:
-        :param shard_count:
+        """Create a Kinesis stream.
+
+        When ``shard_count`` is provided the stream is created in PROVISIONED
+        mode with that number of shards.  If it is omitted the stream is created
+        in ON_DEMAND mode.
+
+        :param stream_name: Name of the stream to create.
+        :param shard_count: Optional number of shards for PROVISIONED mode.
         :return:
         """
         try:
