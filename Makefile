@@ -8,9 +8,9 @@ install:
 
 build: venv install
 
-
+.PHONY: tests
 tests:
-	venv/bin/python -m unittest discover -s src -p '*_test.py'
+	venv/bin/python -m unittest discover -s tests -p '*_test.py'
 
 clean:
 	rm -rf venv
