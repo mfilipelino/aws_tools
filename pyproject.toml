@@ -34,13 +34,15 @@ aws-list-sagemaker-jobs = "cli.list_sagemaker:cli"
 aws-list-kinesis-streams = "cli.list_kinesis:cli"
 aws-list-athena-tables = "cli.list_athena:cli"
 aws-list-cloudformation-stacks = "cli.list_cloudformation:cli"
+aws-list-stepfunctions = "cli.list_stepfunctions:cli"
+aws-retry-stepfunctions = "cli.retry_stepfunctions:cli"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["s3", "kinesis", "glue", "scripts", "cli", "cloudformation"]
+packages = ["s3", "kinesis", "glue", "scripts", "cli", "cloudformation", "stepfunctions"]
 
 [tool.ruff]
 target-version = "py39"

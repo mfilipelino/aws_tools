@@ -7,6 +7,7 @@ from cli.list_kinesis import cli as aws_list_kinesis_cli
 from cli.list_s3 import cli as aws_list_s3_objects_cli
 from cli.list_sagemaker import cli as aws_list_sagemaker_cli
 from cli.list_stepfunctions import cli as aws_list_stepfunctions_cli
+from cli.retry_stepfunctions import cli as aws_retry_stepfunctions_cli
 
 
 @click.group()
@@ -22,6 +23,7 @@ cli_group.add_command(aws_list_kinesis_cli)
 cli_group.add_command(aws_list_s3_objects_cli)
 cli_group.add_command(aws_list_sagemaker_cli)
 cli_group.add_command(aws_list_stepfunctions_cli)
+cli_group.add_command(aws_retry_stepfunctions_cli)
 
 # For setup.py entry_points
 main = cli_group
