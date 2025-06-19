@@ -5,15 +5,15 @@ from typing import Any, Optional
 
 import click
 
+from aws_clients import create_aws_client
 from cli.base import apply_limit, common_options, format_output
-from kinesis.kinesis import create_kinesis_client
 
 
 def list_kinesis_streams(
     prefix: str = "", profile: Optional[str] = None, region: Optional[str] = None, verbose: bool = False
 ) -> Iterator[dict[str, Any]]:
     """List Kinesis streams with filtering."""
-    client = create_kinesis_client(profile_name=profile, region_name=region)
+    client = create_aws_client("kinesis", profile_name=profile, region_name=region)
 
     paginator = client.get_paginator("list_streams")
     page_iterator = paginator.paginate()

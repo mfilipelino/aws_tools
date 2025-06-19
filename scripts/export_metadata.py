@@ -1,17 +1,15 @@
 import argparse
-import os
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 
-import boto3
 import duckdb
 import pandas as pd
 
-profile_name = os.environ.get("PROFILE_NAME", "sandbox")
+from aws_clients import create_aws_client
 
 
 def create_client(service_name: str):
-    return boto3.Session(profile_name=profile_name).client(service_name)
+    return create_aws_client(service_name)
 
 
 def list_s3_objects(bucket: str, prefix: str = "") -> Iterable[dict]:

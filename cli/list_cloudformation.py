@@ -6,8 +6,8 @@ from typing import Any, Optional
 
 import click
 
+from aws_clients import create_aws_client
 from cli.base import apply_limit, common_options, format_output
-from cloudformation.cloudformation import create_cloudformation_client
 
 
 def list_cloudformation_stacks(
@@ -19,7 +19,7 @@ def list_cloudformation_stacks(
     verbose: bool = False,
 ) -> Iterator[dict[str, Any]]:
     """List CloudFormation stacks with filtering."""
-    client = create_cloudformation_client(profile_name=profile or "sandbox")
+    client = create_aws_client("cloudformation", profile_name=profile)
 
     # Build pagination parameters
     params = {}
