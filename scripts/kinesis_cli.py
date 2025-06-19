@@ -19,6 +19,7 @@ def create_stream(client, stream_name, shard_count=None):
     except client.exceptions.ResourceInUseException:
         print(f"Stream {stream_name} already exists")
 
+
 def put_record(client, stream_name, data, partition_key):
     """Put a record to the stream."""
     try:
@@ -28,6 +29,7 @@ def put_record(client, stream_name, data, partition_key):
     except Exception as e:
         print(f"Error putting record in stream {stream_name}: {e}")
         raise
+
 
 if __name__ == "__main__":
     stream_name = "person-input"
@@ -55,8 +57,7 @@ if __name__ == "__main__":
 
     # Generate data and optionally send to Kinesis
     for data in schema.create():  # Reduced for testing
-        put_record(client, stream_name, data, partition_key='1')
+        put_record(client, stream_name, data, partition_key="1")
 
     # Also save to JSON file
     schema.to_json(file_path="data.json", iterations=600)
-

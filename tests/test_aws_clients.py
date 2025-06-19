@@ -76,13 +76,8 @@ def test_create_aws_client_all_parameters(mock_session):
     mock_session_instance.client.return_value = mock_client
     mock_session.return_value = mock_session_instance
 
-    result = create_aws_client(
-        "cloudformation",
-        profile_name="test-profile",
-        region_name="eu-west-1"
-    )
+    result = create_aws_client("cloudformation", profile_name="test-profile", region_name="eu-west-1")
 
     mock_session.assert_called_once_with(profile_name="test-profile")
     mock_session_instance.client.assert_called_once_with("cloudformation", region_name="eu-west-1")
     assert result == mock_client
-

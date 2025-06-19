@@ -25,4 +25,3 @@ def create_aws_client(service: str, profile_name: Optional[str] = None, region_n
     profile_name = profile_name or os.environ.get("PROFILE_NAME", "sandbox")
     session = boto3.Session(profile_name=profile_name)
     return session.client(service, region_name=region_name)
-
