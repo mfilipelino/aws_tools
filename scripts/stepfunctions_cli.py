@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import subprocess
-import json
 import argparse
+import json
+import subprocess
 from datetime import datetime, timedelta, timezone
+
 
 def main():
     parser = argparse.ArgumentParser(description="Check Step Function executions and optionally generate rerun commands for failed ones.")
@@ -52,7 +53,7 @@ def main():
 
             if execution_date > start_date_threshold:
                 failed_executions_in_window += 1
-                print(f"\nFound failed execution:")
+                print("\nFound failed execution:")
                 print(f"  Execution ARN: {execution['executionArn']}")
                 print(f"  Start Date: {execution_date.isoformat()}")
 
@@ -94,14 +95,14 @@ def main():
                         f"  --state-machine-arn \"{args.state_machine_arn}\" \\\n"
                         f"  --input '{escaped_input_json_string}'"
                     )
-                    print(f"\n  # To rerun the above failed execution, use the following command:")
+                    print("\n  # To rerun the above failed execution, use the following command:")
                     print(f"  {rerun_command}\n")
 
         if failed_executions_in_window == 0:
             print(f"No failed executions found within the last {args.days} days.")
 
     except subprocess.CalledProcessError as e:
-        print(f"AWS CLI command failed:")
+        print("AWS CLI command failed:")
         print(f"  Command: {' '.join(e.cmd)}")
         print(f"  Return code: {e.returncode}")
         print(f"  Stdout: {e.stdout}")

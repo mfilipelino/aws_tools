@@ -1,16 +1,19 @@
 """List Step Functions state machines with filtering."""
-import re # Import the 're' module for regex operations
+import re  # Import the 're' module for regex operations
+import sys
 from collections.abc import Iterator
-from typing import Any, Optional, List
+from typing import Any, Optional
 
 import click
-from stepfunctions.stepfunctions import create_stepfunctions_client # Correct import
+
 from cli.base import apply_limit, common_options, format_output
+from stepfunctions.stepfunctions import create_stepfunctions_client  # Correct import
+
 
 def list_stepfunctions(
     prefix: Optional[str] = None,
     regex_pattern: Optional[str] = None, # Renamed for clarity
-    tags_filter: Optional[List[str]] = None, # Renamed for clarity, expecting list of 'Key=Value'
+    tags_filter: Optional[list[str]] = None, # Renamed for clarity, expecting list of 'Key=Value'
     profile: Optional[str] = None,
     region: Optional[str] = None,
     verbose: bool = False # Added verbose flag
@@ -25,7 +28,7 @@ def list_stepfunctions(
         for tag_item in tags_filter:
             if '=' not in tag_item:
                 # Handle error or skip malformed tag
-                print(f"Warning: Malformed tag '{tag_item}', skipping. Expected format: Key=Value")
+                print(f"Warning: Malformed tag '{tag_item}', skipping. Expected format: Key=Value", file=sys.stderr)
                 continue
             key, value = tag_item.split('=', 1)
             parsed_tags_filter[key] = value
@@ -58,7 +61,7 @@ def list_stepfunctions(
                         continue
                 except Exception as e:
                     # Handle cases where tags cannot be fetched (e.g., permissions)
-                    print(f"Warning: Could not retrieve tags for {state_machine_arn}: {e}")
+                    print(f"Warning: Could not retrieve tags for {state_machine_arn}: {e}", file=sys.stderr)
                     if parsed_tags_filter: # If filtering by tags is active, skip if tags can't be checked
                         continue
 
@@ -78,7 +81,7 @@ def list_stepfunctions(
                     result['roleArn'] = description.get('roleArn', '')
                     # Potentially add more fields from describe_state_machine if needed
                 except Exception as e:
-                    print(f"Warning: Could not describe state machine {state_machine_arn}: {e}")
+                    print(f"Warning: Could not describe state machine {state_machine_arn}: {e}", file=sys.stderr)
                     result['status'] = 'ERROR_FETCHING_DETAILS'
 
 
@@ -93,7 +96,7 @@ def list_stepfunctions(
 def cli(
     prefix: Optional[str],
     regex: Optional[str],
-    tags_filter: Optional[List[str]],
+    tags_filter: Optional[list[str]],
     profile: Optional[str],
     region: Optional[str],
     output_format: str,

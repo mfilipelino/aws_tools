@@ -1,6 +1,8 @@
 # stepfunctions/stepfunctions.py
-import boto3
 from typing import Optional
+
+import boto3
+
 
 def create_stepfunctions_client(profile_name: Optional[str] = None, region_name: Optional[str] = None):
     """Create a Step Functions client."""
