@@ -37,4 +37,3 @@ mypy-report.txt
 
 # UV
 .uv/
-uv.lock
