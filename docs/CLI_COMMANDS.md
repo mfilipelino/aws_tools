@@ -64,7 +64,7 @@ aws-list-s3-objects --bucket temp --max-size 0B | \
   xargs -I {} aws s3 rm "s3://temp/{}"
 
 # Generate storage report
-aws-list-s3-objects --bucket prod --format csv --output-fields key,size,storage_class > storage-report.csv
+aws-tools aws-list-s3-objects --bucket prod --format csv --output-fields key,size,storage_class > storage-report.csv
 ```
 
 ### aws-list-glue-jobs
@@ -91,12 +91,12 @@ aws-list-glue-jobs --status FAILED
 aws-list-glue-jobs --prefix prod- --verbose --format table
 
 # Restart failed jobs
-aws-list-glue-jobs --status FAILED --prefix nightly- | \
+aws-tools aws-list-glue-jobs --status FAILED --prefix nightly- | \
   jq -r '.name' | \
   xargs -I {} aws glue start-job-run --job-name {}
 
 # Monitor long-running jobs
-aws-list-glue-jobs --format jsonl | \
+aws-tools aws-list-glue-jobs --format jsonl | \
   jq 'select(.last_run_status == "RUNNING" and .last_run_duration > 3600)'
 ```
 
@@ -125,12 +125,12 @@ aws-list-sagemaker-jobs --type processing --status Failed
 watch 'aws-list-sagemaker-jobs --type training --status InProgress --format table'
 
 # Calculate training costs (approximate)
-aws-list-sagemaker-jobs --type training --status Completed | \
+aws-tools aws-list-sagemaker-jobs --type training --status Completed | \
   jq -r 'select(.instance_type == "ml.p3.2xlarge") | .training_time_seconds' | \
   awk '{sum+=$1} END {print "Total hours:", sum/3600}'
 
 # Find jobs using specific instance types
-aws-list-sagemaker-jobs --verbose | \
+aws-tools aws-list-sagemaker-jobs --verbose | \
   jq 'select(.instance_type | startswith("ml.p3"))'
 ```
 
@@ -157,11 +157,11 @@ aws-list-kinesis-streams --verbose --format table
 aws-list-kinesis-streams --verbose | jq 'select(.mode == "ON_DEMAND")'
 
 # Monitor stream health
-aws-list-kinesis-streams --verbose --format jsonl | \
+aws-tools aws-list-kinesis-streams --verbose --format jsonl | \
   jq 'select(.status != "ACTIVE")'
 
 # Generate stream inventory
-aws-list-kinesis-streams --verbose --format csv > kinesis-inventory.csv
+aws-tools aws-list-kinesis-streams --verbose --format csv > kinesis-inventory.csv
 ```
 
 ### aws-list-athena-tables
@@ -196,10 +196,59 @@ aws-list-athena-tables --verbose | \
   jq 'select(.location | contains("s3://data-lake"))'
 
 # Generate DDL statements
-aws-list-athena-tables --prefix user_ | \
+aws-tools aws-list-athena-tables --prefix user_ | \
   jq -r '.table' | \
   xargs -I {} aws athena get-table-metadata --database-name default --table-name {}
 ```
+
+### `aws-list-stepfunctions`
+
+List AWS Step Functions state machines with filtering options.
+
+**Options:**
+
+*   `--prefix TEXT`: Filter state machines by name prefix.
+*   `--regex TEXT`: Filter state machines by name using a regular expression.
+*   `--tag TEXT`: Filter state machines by tag (e.g., `Key=Value`). This option can be specified multiple times to filter by multiple tags (AND logic).
+*   `--profile TEXT`: AWS profile to use.
+*   `--region TEXT`: AWS region to use.
+*   `--format [jsonl|json|tsv|csv|table]`: Output format (default: jsonl).
+*   `--limit INTEGER`: Maximum number of results to return.
+*   `--output-fields TEXT`: Comma-separated list of fields to output.
+*   `--no-header`: Omit header row (for tsv/csv formats).
+*   `--verbose`: Include additional metadata (e.g., status, role ARN).
+
+**Examples:**
+
+*   List all state machines in the default region:
+    ```bash
+    aws-tools aws-list-stepfunctions
+    ```
+
+*   List state machines with names starting with `MyWorkflow`:
+    ```bash
+    aws-tools aws-list-stepfunctions --prefix MyWorkflow
+    ```
+
+*   List state machines with names matching the regex `^OrderProcessing.*`:
+    ```bash
+    aws-tools aws-list-stepfunctions --regex "^OrderProcessing.*"
+    ```
+
+*   List state machines tagged with `Department=Sales`:
+    ```bash
+    aws-tools aws-list-stepfunctions --tag Department=Sales
+    ```
+
+*   List state machines tagged with `Project=Alpha` AND `Environment=Production`, in table format:
+    ```bash
+    aws-tools aws-list-stepfunctions --tag Project=Alpha --tag Environment=Production --format table
+    ```
+
+*   List state machines, including verbose details, and limit to 5 results:
+    ```bash
+    aws-tools aws-list-stepfunctions --verbose --limit 5
+    ```
 
 ## Advanced Use Cases
 
@@ -208,9 +257,9 @@ aws-list-athena-tables --prefix user_ | \
 #### 1. Data Pipeline Monitoring
 ```bash
 # Check if Glue job completed before querying Athena
-JOB_STATUS=$(aws-list-glue-jobs --prefix daily-etl- --format jsonl | jq -r '.last_run_status' | head -1)
+JOB_STATUS=$(aws-tools aws-list-glue-jobs --prefix daily-etl- --format jsonl | jq -r '.last_run_status' | head -1)
 if [ "$JOB_STATUS" = "SUCCEEDED" ]; then
-  aws-list-athena-tables --prefix daily_ | jq -r '.table' | head -1 | \
+  aws-tools aws-list-athena-tables --prefix daily_ | jq -r '.table' | head -1 | \
     xargs -I {} aws athena start-query-execution --query-string "SELECT COUNT(*) FROM {}"
 fi
 ```
@@ -220,15 +269,15 @@ fi
 # Find and report on expensive resources
 {
   echo "=== Large S3 Objects ==="
-  aws-list-s3-objects --bucket data --min-size 10GB --format jsonl | \
+  aws-tools aws-list-s3-objects --bucket data --min-size 10GB --format jsonl | \
     jq '{key, size_gb: (.size/1073741824)}' | head -10
   
   echo -e "\n=== Long Running SageMaker Jobs ==="
-  aws-list-sagemaker-jobs --type training --verbose | \
+  aws-tools aws-list-sagemaker-jobs --type training --verbose | \
     jq 'select(.training_time_seconds > 7200) | {name, hours: (.training_time_seconds/3600), instance_type}'
   
   echo -e "\n=== High Shard Count Kinesis Streams ==="
-  aws-list-kinesis-streams --verbose | \
+  aws-tools aws-list-kinesis-streams --verbose | \
     jq 'select(.shard_count > 10) | {name, shard_count}'
 } > cost-report.txt
 ```
@@ -236,7 +285,7 @@ fi
 #### 3. Automated Cleanup
 ```bash
 # Clean up old failed jobs
-aws-list-glue-jobs --status FAILED --format jsonl | \
+aws-tools aws-list-glue-jobs --status FAILED --format jsonl | \
   jq -r 'select(.last_run_time | fromdateiso8601 < (now - 86400*7)) | .name' | \
   while read job; do
     echo "Deleting old failed job: $job"
@@ -244,7 +293,7 @@ aws-list-glue-jobs --status FAILED --format jsonl | \
   done
 
 # Archive old S3 objects
-aws-list-s3-objects --bucket logs --prefix app/ --older-than "90 days ago" | \
+aws-tools aws-list-s3-objects --bucket logs --prefix app/ --older-than "90 days ago" | \
   jq -r '.key' | \
   xargs -P 10 -I {} aws s3 cp "s3://logs/{}" "s3://archive/{}" --storage-class GLACIER
 ```
@@ -253,9 +302,9 @@ aws-list-s3-objects --bucket logs --prefix app/ --older-than "90 days ago" | \
 ```bash
 # Find untagged resources by checking multiple services
 {
-  aws-list-glue-jobs --verbose | jq 'select(.properties.tags == null) | {service: "glue", name}'
-  aws-list-kinesis-streams | jq '{service: "kinesis", name}'
-  aws-list-athena-tables | jq '{service: "athena", name: .table}'
+  aws-tools aws-list-glue-jobs --verbose | jq 'select(.properties.tags == null) | {service: "glue", name}'
+  aws-tools aws-list-kinesis-streams | jq '{service: "kinesis", name}'
+  aws-tools aws-list-athena-tables | jq '{service: "athena", name: .table}'
 } | jq -s 'flatten | group_by(.service) | map({service: .[0].service, count: length})'
 ```
 
@@ -265,13 +314,13 @@ aws-list-s3-objects --bucket logs --prefix app/ --older-than "90 days ago" | \
 ```bash
 # Process multiple prefixes in parallel
 echo -e "logs/\ndata/\nbackups/" | \
-  parallel -j 3 'aws-list-s3-objects --bucket mybucket --prefix {} | wc -l'
+  parallel -j 3 'aws-tools aws-list-s3-objects --bucket mybucket --prefix {} | wc -l'
 ```
 
 #### With SQLite
 ```bash
 # Import data into SQLite for complex queries
-aws-list-sagemaker-jobs --verbose --format csv > jobs.csv
+aws-tools aws-list-sagemaker-jobs --verbose --format csv > jobs.csv
 sqlite3 jobs.db <<EOF
 .mode csv
 .import jobs.csv jobs
@@ -288,7 +337,7 @@ import json
 
 # Get all failed jobs and analyze patterns
 result = subprocess.run(
-    ['aws-list-glue-jobs', '--status', 'FAILED', '--format', 'jsonl'],
+    ['aws-tools', 'aws-list-glue-jobs', '--status', 'FAILED', '--format', 'jsonl'],
     capture_output=True, text=True
 )
 
@@ -318,13 +367,13 @@ print("Failure patterns by prefix:", failure_patterns)
    aws sts get-caller-identity
    
    # Use a different profile
-   aws-list-s3-objects --profile prod --bucket my-bucket
+   aws-tools aws-list-s3-objects --profile prod --bucket my-bucket
    ```
 
 2. **Rate Limiting**
    ```bash
    # Add delays between calls
-   aws-list-glue-jobs | while read -r line; do
+   aws-tools aws-list-glue-jobs | while read -r line; do
      echo "$line" | jq -r '.name'
      sleep 0.1
    done
@@ -335,7 +384,7 @@ print("Failure patterns by prefix:", failure_patterns)
    # Use pagination with limit
    OFFSET=0
    while true; do
-     RESULTS=$(aws-list-s3-objects --bucket huge-bucket --limit 1000)
+     RESULTS=$(aws-tools aws-list-s3-objects --bucket huge-bucket --limit 1000)
      if [ -z "$RESULTS" ]; then break; fi
      echo "$RESULTS"
      OFFSET=$((OFFSET + 1000))
