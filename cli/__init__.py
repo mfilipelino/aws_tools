@@ -8,6 +8,7 @@ from cli.list_s3 import cli as aws_list_s3_objects_cli
 from cli.list_sagemaker import cli as aws_list_sagemaker_cli
 from cli.list_stepfunctions import cli as aws_list_stepfunctions_cli
 
+
 @click.group()
 def cli_group():
     """AWS Operations CLI tool"""
