@@ -97,6 +97,64 @@ def list_athena_query_errors(workgroup: str = "primary", days: int = 7) -> Itera
                     }
 
 
+def list_sagemaker_pipeline_executions(pipeline_name: str, days: int = 7) -> Iterable[dict]:
+    client = create_client("sagemaker")
+    paginator = client.get_paginator("list_pipeline_executions")
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    for page in paginator.paginate(PipelineName=pipeline_name):
+        for pe in page.get("PipelineExecutionSummaries", []):
+            start = pe.get("StartTime")
+            if start and start < cutoff:
+                continue
+            yield {
+                "pipeline_name": pipeline_name,
+                "execution_arn": pe.get("PipelineExecutionArn"),
+                "status": pe.get("PipelineExecutionStatus"),
+                "start_time": start,
+                "last_modified_time": pe.get("LastModifiedTime"),
+            }
+
+
+def list_sagemaker_training_jobs(name_contains: str = "", days: int = 7) -> Iterable[dict]:
+    client = create_client("sagemaker")
+    paginator = client.get_paginator("list_training_jobs")
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    params = {"SortBy": "CreationTime", "SortOrder": "Descending"}
+    if name_contains:
+        params["NameContains"] = name_contains
+    for page in paginator.paginate(**params):
+        for tj in page.get("TrainingJobSummaries", []):
+            creation = tj.get("CreationTime")
+            if creation and creation < cutoff:
+                continue
+            yield {
+                "training_job_name": tj.get("TrainingJobName"),
+                "status": tj.get("TrainingJobStatus"),
+                "creation_time": creation,
+                "end_time": tj.get("TrainingEndTime"),
+            }
+
+
+def list_sagemaker_processing_jobs(name_contains: str = "", days: int = 7) -> Iterable[dict]:
+    client = create_client("sagemaker")
+    paginator = client.get_paginator("list_processing_jobs")
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    params = {"SortBy": "CreationTime", "SortOrder": "Descending"}
+    if name_contains:
+        params["NameContains"] = name_contains
+    for page in paginator.paginate(**params):
+        for pj in page.get("ProcessingJobSummaries", []):
+            creation = pj.get("CreationTime")
+            if creation and creation < cutoff:
+                continue
+            yield {
+                "processing_job_name": pj.get("ProcessingJobName"),
+                "status": pj.get("ProcessingJobStatus"),
+                "creation_time": creation,
+                "end_time": pj.get("ProcessingEndTime"),
+            }
+
+
 def save_to_duckdb(rows: Iterable[dict], table_name: str, db_path: str) -> None:
     con = duckdb.connect(db_path)
     df = pd.DataFrame(rows)
@@ -136,6 +194,24 @@ if __name__ == "__main__":
     athena_err_parser.add_argument("--db-path", default="aws_metadata.duckdb")
     athena_err_parser.add_argument("--table", default="athena_query_errors")
 
+    sm_pipe_parser = subparsers.add_parser("sm-pipeline-executions")
+    sm_pipe_parser.add_argument("--pipeline-name", required=True)
+    sm_pipe_parser.add_argument("--days", type=int, default=7)
+    sm_pipe_parser.add_argument("--db-path", default="aws_metadata.duckdb")
+    sm_pipe_parser.add_argument("--table", default="sm_pipeline_executions")
+
+    sm_train_parser = subparsers.add_parser("sm-training-jobs")
+    sm_train_parser.add_argument("--name-contains", default="")
+    sm_train_parser.add_argument("--days", type=int, default=7)
+    sm_train_parser.add_argument("--db-path", default="aws_metadata.duckdb")
+    sm_train_parser.add_argument("--table", default="sm_training_jobs")
+
+    sm_proc_parser = subparsers.add_parser("sm-processing-jobs")
+    sm_proc_parser.add_argument("--name-contains", default="")
+    sm_proc_parser.add_argument("--days", type=int, default=7)
+    sm_proc_parser.add_argument("--db-path", default="aws_metadata.duckdb")
+    sm_proc_parser.add_argument("--table", default="sm_processing_jobs")
+
     args = parser.parse_args()
 
     if args.command == "s3":
@@ -152,6 +228,15 @@ if __name__ == "__main__":
         save_to_duckdb(items, args.table, args.db_path)
     elif args.command == "athena-errors":
         items = list(list_athena_query_errors(args.workgroup, args.days))
+        save_to_duckdb(items, args.table, args.db_path)
+    elif args.command == "sm-pipeline-executions":
+        items = list(list_sagemaker_pipeline_executions(args.pipeline_name, args.days))
+        save_to_duckdb(items, args.table, args.db_path)
+    elif args.command == "sm-training-jobs":
+        items = list(list_sagemaker_training_jobs(args.name_contains, args.days))
+        save_to_duckdb(items, args.table, args.db_path)
+    elif args.command == "sm-processing-jobs":
+        items = list(list_sagemaker_processing_jobs(args.name_contains, args.days))
         save_to_duckdb(items, args.table, args.db_path)
     else:
         parser.print_help()
