@@ -31,15 +31,15 @@ class TestCloudFormationListStacks(unittest.TestCase):
                     "StackId": "arn:aws:cloudformation:us-east-1:123456789012:stack/test-stack-1/uuid",
                     "CreationTime": datetime(2024, 1, 1, 12, 0, 0),
                     "StackStatus": "CREATE_COMPLETE",
-                    "TemplateDescription": "Test stack 1"
+                    "TemplateDescription": "Test stack 1",
                 },
                 {
                     "StackName": "test-stack-2",
                     "StackId": "arn:aws:cloudformation:us-east-1:123456789012:stack/test-stack-2/uuid",
                     "CreationTime": datetime(2024, 1, 2, 12, 0, 0),
                     "StackStatus": "UPDATE_COMPLETE",
-                    "TemplateDescription": "Test stack 2"
-                }
+                    "TemplateDescription": "Test stack 2",
+                },
             ]
         }
         mock_paginator.paginate.return_value = [mock_page]
@@ -74,7 +74,7 @@ class TestCloudFormationListStacks(unittest.TestCase):
                     "StackId": "arn:aws:cloudformation:us-east-1:123456789012:stack/database-stack/uuid",
                     "CreationTime": datetime(2024, 1, 2, 12, 0, 0),
                     "StackStatus": "CREATE_COMPLETE",
-                }
+                },
             ]
         }
         mock_paginator.paginate.return_value = [mock_page]
@@ -113,7 +113,7 @@ class TestCloudFormationListStacks(unittest.TestCase):
                     "StackId": "arn:aws:cloudformation:us-east-1:123456789012:stack/database-stack/uuid",
                     "CreationTime": datetime(2024, 1, 3, 12, 0, 0),
                     "StackStatus": "CREATE_COMPLETE",
-                }
+                },
             ]
         }
         mock_paginator.paginate.return_value = [mock_page]
@@ -174,14 +174,7 @@ class TestCloudFormationListStacks(unittest.TestCase):
 
         # Mock describe_stacks response for tag matching
         mock_client.describe_stacks.return_value = {
-            "Stacks": [
-                {
-                    "Tags": [
-                        {"Key": "Environment", "Value": "production"},
-                        {"Key": "Team", "Value": "backend"}
-                    ]
-                }
-            ]
+            "Stacks": [{"Tags": [{"Key": "Environment", "Value": "production"}, {"Key": "Team", "Value": "backend"}]}]
         }
 
         cf_instance = CloudFormation()
@@ -205,7 +198,7 @@ class TestCloudFormationListStacks(unittest.TestCase):
                     "StackStatus": "CREATE_COMPLETE",
                     "Parameters": [{"ParameterKey": "Environment", "ParameterValue": "prod"}],
                     "Tags": [{"Key": "Team", "Value": "backend"}],
-                    "Outputs": [{"OutputKey": "WebsiteURL", "OutputValue": "https://example.com"}]
+                    "Outputs": [{"OutputKey": "WebsiteURL", "OutputValue": "https://example.com"}],
                 }
             ]
         }
@@ -249,7 +242,7 @@ class TestCloudFormationListStacks(unittest.TestCase):
                     "PhysicalResourceId": "i-1234567890abcdef0",
                     "ResourceType": "AWS::EC2::Instance",
                     "ResourceStatus": "CREATE_COMPLETE",
-                    "LastUpdatedTimestamp": datetime(2024, 1, 1, 12, 0, 0)
+                    "LastUpdatedTimestamp": datetime(2024, 1, 1, 12, 0, 0),
                 }
             ]
         }
