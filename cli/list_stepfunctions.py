@@ -7,8 +7,8 @@ from typing import Any, Optional
 
 import click
 
+from aws_clients import create_aws_client
 from cli.base import apply_limit, common_options, format_output
-from stepfunctions.stepfunctions import create_stepfunctions_client  # Correct import
 
 
 def list_stepfunctions(
@@ -20,7 +20,7 @@ def list_stepfunctions(
     verbose: bool = False,  # Added verbose flag
 ) -> Iterator[dict[str, Any]]:
     """List Step Functions state machines with filtering."""
-    client = create_stepfunctions_client(profile_name=profile, region_name=region)
+    client = create_aws_client("stepfunctions", profile_name=profile, region_name=region)
     paginator = client.get_paginator("list_state_machines")
 
     # Parse tags filter

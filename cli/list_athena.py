@@ -1,34 +1,19 @@
 """List Athena tables with prefix filtering."""
 
-import os
 from collections.abc import Iterator
 from typing import Any, Optional
 
-import boto3
 import click
 
+from aws_clients import create_aws_client
 from cli.base import apply_limit, common_options, format_output
-
-
-def create_athena_client(profile_name: Optional[str] = None, region_name: Optional[str] = None):
-    """Create an Athena client with the specified profile."""
-    profile_name = profile_name or os.environ.get("PROFILE_NAME", "sandbox")
-    session = boto3.Session(profile_name=profile_name)
-    return session.client("athena", region_name=region_name)
-
-
-def create_glue_client(profile_name: Optional[str] = None, region_name: Optional[str] = None):
-    """Create a Glue client for accessing the data catalog."""
-    profile_name = profile_name or os.environ.get("PROFILE_NAME", "sandbox")
-    session = boto3.Session(profile_name=profile_name)
-    return session.client("glue", region_name=region_name)
 
 
 def list_athena_tables(
     database: str, prefix: str = "", profile: Optional[str] = None, region: Optional[str] = None, verbose: bool = False
 ) -> Iterator[dict[str, Any]]:
     """List Athena tables from the Glue Data Catalog."""
-    glue_client = create_glue_client(profile_name=profile, region_name=region)
+    glue_client = create_aws_client("glue", profile_name=profile, region_name=region)
 
     paginator = glue_client.get_paginator("get_tables")
     page_iterator = paginator.paginate(DatabaseName=database)

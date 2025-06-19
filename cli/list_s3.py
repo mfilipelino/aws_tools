@@ -6,8 +6,8 @@ from typing import Any, Optional
 
 import click
 
+from aws_clients import create_aws_client
 from cli.base import apply_limit, common_options, format_output
-from s3.s3 import create_s3_client
 
 
 def parse_size(size_str: str) -> int:
@@ -59,7 +59,7 @@ def list_s3_objects(
     verbose: bool = False,
 ) -> Iterator[dict[str, Any]]:
     """List S3 objects with filtering."""
-    client = create_s3_client(profile_name=profile, region_name=region)
+    client = create_aws_client("s3", profile_name=profile, region_name=region)
 
     paginator = client.get_paginator("list_objects_v2")
     page_iterator = paginator.paginate(Bucket=bucket, Prefix=prefix)

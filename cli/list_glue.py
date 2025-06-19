@@ -5,8 +5,8 @@ from typing import Any, Optional
 
 import click
 
+from aws_clients import create_aws_client
 from cli.base import apply_limit, common_options, format_output
-from glue.glue import create_glue_client
 
 
 def list_glue_jobs(
@@ -17,7 +17,7 @@ def list_glue_jobs(
     verbose: bool = False,
 ) -> Iterator[dict[str, Any]]:
     """List Glue jobs with filtering."""
-    client = create_glue_client(profile_name=profile, region_name=region)
+    client = create_aws_client("glue", profile_name=profile, region_name=region)
 
     paginator = client.get_paginator("get_jobs")
     page_iterator = paginator.paginate()

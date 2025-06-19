@@ -30,7 +30,7 @@ class TestCLICommands(unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
 
-    @patch("cli.list_s3.create_s3_client")
+    @patch("cli.list_s3.create_aws_client")
     def test_s3_list_basic(self, mock_client):
         """Test basic S3 listing functionality."""
         # Mock S3 client and paginator
@@ -63,7 +63,7 @@ class TestCLICommands(unittest.TestCase):
         self.assertEqual(len(output_data), 1)
         self.assertEqual(output_data[0]["key"], "test-prefix-file1.txt")
 
-    @patch("cli.list_glue.create_glue_client")
+    @patch("cli.list_glue.create_aws_client")
     def test_glue_list_basic(self, mock_client):
         """Test basic Glue jobs listing functionality."""
         mock_glue = MagicMock()
@@ -93,7 +93,7 @@ class TestCLICommands(unittest.TestCase):
         self.assertEqual(len(output_data), 1)
         self.assertEqual(output_data[0]["name"], "etl-test-job")
 
-    @patch("cli.list_kinesis.create_kinesis_client")
+    @patch("cli.list_kinesis.create_aws_client")
     def test_kinesis_list_basic(self, mock_client):
         """Test basic Kinesis streams listing functionality."""
         mock_kinesis = MagicMock()
@@ -128,7 +128,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_no_filters(self, mock_create_sfn_client):
         """Test basic invocation of aws-list-stepfunctions."""
         mock_sfn_client = MagicMock()
@@ -157,10 +157,10 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertIn("MachineA", result.output)
         self.assertIn("MachineB", result.output)
-        mock_create_sfn_client.assert_called_once_with(profile_name=None, region_name=None)
+        mock_create_sfn_client.assert_called_once_with("stepfunctions", profile_name=None, region_name=None)
         mock_sfn_client.get_paginator.assert_called_once_with("list_state_machines")
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_prefix_filter(self, mock_create_sfn_client):
         """Test --prefix filter."""
         mock_sfn_client = MagicMock()
@@ -188,7 +188,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertIn("TestMachineA", result.output)
         self.assertNotIn("AnotherMachineB", result.output)
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_regex_filter(self, mock_create_sfn_client):
         """Test --regex filter."""
         mock_sfn_client = MagicMock()
@@ -216,7 +216,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertIn("Machine-01-Prod", result.output)
         self.assertNotIn("Machine-02-Dev", result.output)
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_tag_filter_single(self, mock_create_sfn_client):
         """Test single --tag filter."""
         mock_sfn_client = MagicMock()
@@ -251,7 +251,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertNotIn("UntaggedMachine", result.output)
         mock_sfn_client.list_tags_for_resource.assert_any_call(resourceArn="arn:sf:sm:TaggedMachine")
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_tag_filter_multiple(self, mock_create_sfn_client):
         """Test multiple --tag filters."""
         mock_sfn_client = MagicMock()
@@ -293,7 +293,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertNotIn("Machine2", result.output)
         self.assertNotIn("Machine3", result.output)
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_tag_filter_value_mismatch(self, mock_create_sfn_client):
         """Test --tag filter where value does not match."""
         mock_sfn_client = MagicMock()
@@ -315,7 +315,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertNotIn("MachineX", result.output)
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_tag_filter_missing_tag(self, mock_create_sfn_client):
         """Test --tag filter where a machine is missing the tag."""
         mock_sfn_client = MagicMock()
@@ -337,7 +337,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertNotIn("MachineY", result.output)
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_verbose_option(self, mock_create_sfn_client):
         """Test --verbose option includes additional fields."""
         mock_sfn_client = MagicMock()
@@ -371,7 +371,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertEqual(output_data[0]["roleArn"], "arn:aws:iam::123:role/sfn_role")
         mock_sfn_client.describe_state_machine.assert_called_once_with(stateMachineArn=machine_arn)
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_verbose_describe_failure(self, mock_create_sfn_client):
         """Test --verbose option with describe_state_machine failure."""
         mock_sfn_client = MagicMock()
@@ -402,7 +402,7 @@ class TestListStepFunctionsCLI(unittest.TestCase):
         self.assertIn("FailDescribe", output_data[0]["name"])
         self.assertEqual(output_data[0]["status"], "ERROR_FETCHING_DETAILS")  # Check for graceful error handling
 
-    @patch("cli.list_stepfunctions.create_stepfunctions_client")
+    @patch("cli.list_stepfunctions.create_aws_client")
     def test_list_stepfunctions_limit_option(self, mock_create_sfn_client):
         """Test --limit option."""
         mock_sfn_client = MagicMock()

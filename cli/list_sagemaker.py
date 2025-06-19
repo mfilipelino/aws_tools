@@ -1,20 +1,12 @@
 """List SageMaker jobs with prefix filtering."""
 
-import os
 from collections.abc import Iterator
 from typing import Any, Optional
 
-import boto3
 import click
 
+from aws_clients import create_aws_client
 from cli.base import apply_limit, common_options, format_output
-
-
-def create_sagemaker_client(profile_name: Optional[str] = None, region_name: Optional[str] = None):
-    """Create a SageMaker client with the specified profile."""
-    profile_name = profile_name or os.environ.get("PROFILE_NAME", "sandbox")
-    session = boto3.Session(profile_name=profile_name)
-    return session.client("sagemaker", region_name=region_name)
 
 
 def list_training_jobs(
@@ -183,7 +175,7 @@ def cli(prefix, job_type, status, profile, region, output_format, limit, output_
         # Export completed jobs to CSV
         aws-list-sagemaker-jobs --status Completed --format csv > completed-jobs.csv
     """
-    client = create_sagemaker_client(profile_name=profile, region_name=region)
+    client = create_aws_client("sagemaker", profile_name=profile, region_name=region)
 
     # Collect jobs based on type
     all_jobs = []
