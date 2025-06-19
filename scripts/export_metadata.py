@@ -186,9 +186,14 @@ def list_cloudformation_stacks(name_prefix: str = "", days: int = 7) -> Iterable
 
 
 def save_to_duckdb(rows: Iterable[dict], table_name: str, db_path: str) -> None:
+    # Validate table name to prevent SQL injection
+    if not table_name.replace('_', '').replace('-', '').isalnum():
+        raise ValueError(f"Invalid table name: {table_name}")
+
     con = duckdb.connect(db_path)
     df = pd.DataFrame(rows)
-    con.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM df")
+    # Table names cannot be parameterized, so we validate the input instead
+    con.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM df")  # nosec B608
     con.close()
 
 

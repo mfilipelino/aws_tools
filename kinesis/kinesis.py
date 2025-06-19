@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 profile_name = os.environ.get("PROFILE_NAME", "sandbox")
 
 
-def create_kinesis_client(profile_name):
-    return boto3.Session(profile_name=profile_name).client("kinesis")
+def create_kinesis_client(profile_name, region_name=None):
+    return boto3.Session(profile_name=profile_name).client("kinesis", region_name=region_name)
 
 
 class KinesisStream:
