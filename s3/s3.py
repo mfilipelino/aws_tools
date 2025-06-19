@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 import boto3
 from botocore.exceptions import ClientError
@@ -12,11 +12,10 @@ profile_name = os.environ.get("PROFILE_NAME", "sandbox")
 def create_s3_client(profile_name):
     """Create a boto3 S3 client using the configured AWS profile."""
     session = boto3.Session(profile_name=profile_name)
-    return session.client('s3')
+    return session.client("s3")
 
 
 class S3:
-
     def __init__(self):
         self.client = create_s3_client(profile_name)
 
@@ -24,7 +23,7 @@ class S3:
         try:
             s3_client = self.client
             result = s3_client.list_objects(Bucket=bucket_name, Prefix=folder_name)
-            if result.get('Contents'):
+            if result.get("Contents"):
                 logger.info(f"Folder {folder_name} already exists")
             else:
                 s3_client.put_object(Bucket=bucket_name, Key=folder_name)
@@ -49,14 +48,13 @@ class S3:
                 s3_client = self.client
                 s3_client.create_bucket(Bucket=bucket_name)
             else:
-                s3_client = boto3.client('s3', region_name=region)
-                location = {'LocationConstraint': region}
-                s3_client.create_bucket(Bucket=bucket_name,
-                                        CreateBucketConfiguration=location)
+                s3_client = boto3.client("s3", region_name=region)
+                location = {"LocationConstraint": region}
+                s3_client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration=location)
             return True
 
         except ClientError as e:
-            if e.response['Error']['Code'] == 'BucketAlreadyOwnedByYou':
+            if e.response["Error"]["Code"] == "BucketAlreadyOwnedByYou":
                 logger.info(f"Bucket {bucket_name} already exists")
             else:
                 logger.error(e)

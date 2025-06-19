@@ -11,11 +11,10 @@ profile_name = os.environ.get("PROFILE_NAME", "sandbox")
 
 
 def create_kinesis_client(profile_name):
-    return boto3.Session(profile_name=profile_name).client('kinesis')
+    return boto3.Session(profile_name=profile_name).client("kinesis")
 
 
 class KinesisStream:
-
     def __init__(self):
         self.client = create_kinesis_client(profile_name)
 
@@ -32,19 +31,10 @@ class KinesisStream:
         """
         try:
             if shard_count is None:
-                response = self.client.create_stream(
-                    StreamName=stream_name,
-                    StreamModeDetails={
-                        'StreamMode': 'ON_DEMAND'
-                    }
-                )
+                self.client.create_stream(StreamName=stream_name, StreamModeDetails={"StreamMode": "ON_DEMAND"})
             else:
-                response = self.client.create_stream(
-                    StreamName=stream_name,
-                    ShardCount=shard_count,
-                    StreamModeDetails={
-                        'StreamMode': 'PROVISIONED'
-                    }
+                self.client.create_stream(
+                    StreamName=stream_name, ShardCount=shard_count, StreamModeDetails={"StreamMode": "PROVISIONED"}
                 )
         except ClientError as e:
             if "already exists" in e.response.get("Error").get("Message"):
@@ -87,11 +77,7 @@ class KinesisStream:
         :return:
         """
         try:
-            response = self.client.put_record(
-                StreamName=stream_name,
-                Data=json.dumps(data),
-                PartitionKey=partition_key
-            )
+            response = self.client.put_record(StreamName=stream_name, Data=json.dumps(data), PartitionKey=partition_key)
             logger.info("Put record in stream")
             return response
 
@@ -102,12 +88,7 @@ class KinesisStream:
     def put_records(self, stream_name: str, data: list[dict], partition_key: str):
         try:
             return self.client.put_records(
-                StreamName=stream_name,
-                Records=list(
-                    map(lambda e: {"Data": json.dumps(e), "PartitionKey": partition_key},
-                        data
-                        )
-                )
+                StreamName=stream_name, Records=[{"Data": json.dumps(e), "PartitionKey": partition_key} for e in data]
             )
         except ClientError:
             logger.exception("Error to push records on %s", stream_name)
@@ -116,23 +97,23 @@ class KinesisStream:
     def get_shards_info(self, stream_name: str):
         try:
             response = self.describe(stream_name=stream_name)
-            return [shard for shard in response.get("StreamDescription").get("Shards")]
+            return list(response.get("StreamDescription").get("Shards"))
         except ClientError:
             logger.exception("Error on client describe %s", stream_name)
             raise
 
     def get_records(self, stream_name, shard_id, limit=100, shard_interator_types="TRIM_HORIZON"):
-        shard_interator = self.client.get_shard_iterator(StreamName=stream_name,
-                                                         ShardId=shard_id,
-                                                         ShardIteratorType=shard_interator_types)
-        shard_interator = shard_interator['ShardIterator']
+        shard_interator = self.client.get_shard_iterator(
+            StreamName=stream_name, ShardId=shard_id, ShardIteratorType=shard_interator_types
+        )
+        shard_interator = shard_interator["ShardIterator"]
         while True:
             response = self.client.get_records(ShardIterator=shard_interator, Limit=limit)
-            records = response['Records']
+            records = response["Records"]
             if len(records) == 0:
                 break
             yield records
-            shard_interator = response['NextShardIterator']
+            shard_interator = response["NextShardIterator"]
 
 
 kinesis_stream = KinesisStream()
