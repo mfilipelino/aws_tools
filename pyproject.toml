@@ -68,4 +68,5 @@ line-ending = "auto"
 managed = true
 dev-dependencies = [
     "ruff>=0.8.0",
+    "pytest>=7.0",
 ]
