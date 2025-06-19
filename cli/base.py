@@ -1,4 +1,5 @@
 """Base CLI functionality and common options."""
+
 import json
 import sys
 from collections.abc import Iterator
@@ -31,15 +32,16 @@ class OutputFormatter:
                 if fields is None:
                     fields = list(item.keys())
                 if not no_header:
-                    print('\t'.join(fields))
+                    print("\t".join(fields))
 
-            values = [str(item.get(field, '')) for field in fields or []]
-            print('\t'.join(values))
+            values = [str(item.get(field, "")) for field in fields or []]
+            print("\t".join(values))
 
     @staticmethod
     def format_csv(data: Iterator[dict[str, Any]], fields: Optional[list[str]] = None, no_header: bool = False) -> None:
         """Output as comma-separated values."""
         import csv
+
         writer = csv.writer(sys.stdout)
 
         for i, item in enumerate(data):
@@ -49,7 +51,7 @@ class OutputFormatter:
                 if not no_header:
                     writer.writerow(fields)
 
-            values = [item.get(field, '') for field in fields or []]
+            values = [item.get(field, "") for field in fields or []]
             writer.writerow(values)
 
     @staticmethod
@@ -65,7 +67,7 @@ class OutputFormatter:
 
         table_data = []
         for item in items:
-            row = [item.get(field, '') for field in fields]
+            row = [item.get(field, "") for field in fields]
             table_data.append(row)
 
         print(tabulate(table_data, headers=fields, tablefmt="grid"))
@@ -73,37 +75,42 @@ class OutputFormatter:
 
 def common_options(f):
     """Decorator to add common CLI options to commands."""
-    f = click.option('--profile', envvar='AWS_PROFILE', help='AWS profile to use')(f)
-    f = click.option('--region', envvar='AWS_DEFAULT_REGION', help='AWS region')(f)
-    f = click.option('--format', 'output_format',
-                     type=click.Choice(['jsonl', 'json', 'tsv', 'csv', 'table']),
-                     default='jsonl', help='Output format (default: jsonl)')(f)
-    f = click.option('--limit', type=int, help='Maximum number of results')(f)
-    f = click.option('--output-fields', help='Comma-separated list of fields to output')(f)
-    f = click.option('--no-header', is_flag=True, help='Omit header row (for tsv/csv)')(f)
-    f = click.option('--verbose', is_flag=True, help='Include additional metadata')(f)
+    f = click.option("--profile", envvar="AWS_PROFILE", help="AWS profile to use")(f)
+    f = click.option("--region", envvar="AWS_DEFAULT_REGION", help="AWS region")(f)
+    f = click.option(
+        "--format",
+        "output_format",
+        type=click.Choice(["jsonl", "json", "tsv", "csv", "table"]),
+        default="jsonl",
+        help="Output format (default: jsonl)",
+    )(f)
+    f = click.option("--limit", type=int, help="Maximum number of results")(f)
+    f = click.option("--output-fields", help="Comma-separated list of fields to output")(f)
+    f = click.option("--no-header", is_flag=True, help="Omit header row (for tsv/csv)")(f)
+    f = click.option("--verbose", is_flag=True, help="Include additional metadata")(f)
     return f
 
 
-def format_output(data: Iterator[dict[str, Any]], format_type: str,
-                  fields: Optional[str] = None, no_header: bool = False) -> None:
+def format_output(
+    data: Iterator[dict[str, Any]], format_type: str, fields: Optional[str] = None, no_header: bool = False
+) -> None:
     """Format and output data based on the specified format."""
     formatter = OutputFormatter()
 
     # Parse fields if provided
     field_list = None
     if fields:
-        field_list = [f.strip() for f in fields.split(',')]
+        field_list = [f.strip() for f in fields.split(",")]
 
-    if format_type == 'jsonl':
+    if format_type == "jsonl":
         formatter.format_jsonl(data)
-    elif format_type == 'json':
+    elif format_type == "json":
         formatter.format_json(data)
-    elif format_type == 'tsv':
+    elif format_type == "tsv":
         formatter.format_tsv(data, field_list, no_header)
-    elif format_type == 'csv':
+    elif format_type == "csv":
         formatter.format_csv(data, field_list, no_header)
-    elif format_type == 'table':
+    elif format_type == "table":
         formatter.format_table(data, field_list)
 
 

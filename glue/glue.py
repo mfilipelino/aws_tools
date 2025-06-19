@@ -1,4 +1,5 @@
 """AWS Glue client factory and utilities."""
+
 import os
 from typing import Optional
 
@@ -10,7 +11,7 @@ def create_glue_client(profile_name: Optional[str] = None, region_name: Optional
     profile_name = profile_name or os.environ.get("PROFILE_NAME", "sandbox")
 
     session = boto3.Session(profile_name=profile_name)
-    return session.client('glue', region_name=region_name)
+    return session.client("glue", region_name=region_name)
 
 
 # Module-level client instance

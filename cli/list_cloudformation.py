@@ -1,4 +1,5 @@
 """List CloudFormation stacks with filtering options."""
+
 import re
 from collections.abc import Iterator
 from typing import Any, Optional
@@ -15,7 +16,7 @@ def list_cloudformation_stacks(
     name_regex: Optional[str] = None,
     stack_status_filter: Optional[list[str]] = None,
     profile: Optional[str] = None,
-    verbose: bool = False
+    verbose: bool = False,
 ) -> Iterator[dict[str, Any]]:
     """List CloudFormation stacks with filtering."""
     client = create_cloudformation_client(profile_name=profile or "sandbox")
@@ -57,11 +58,13 @@ def list_cloudformation_stacks(
             }
 
             if verbose:
-                result.update({
-                    "deletion_time": stack.get("DeletionTime").isoformat() if stack.get("DeletionTime") else None,
-                    "stack_status_reason": stack.get("StackStatusReason"),
-                    "drift_information": stack.get("DriftInformation"),
-                })
+                result.update(
+                    {
+                        "deletion_time": stack.get("DeletionTime").isoformat() if stack.get("DeletionTime") else None,
+                        "stack_status_reason": stack.get("StackStatusReason"),
+                        "drift_information": stack.get("DriftInformation"),
+                    }
+                )
 
             yield result
 
@@ -95,9 +98,9 @@ def parse_tag_filters(tag_string: str) -> dict[str, str]:
         return {}
 
     tags = {}
-    for pair in tag_string.split(','):
-        if '=' in pair:
-            key, value = pair.split('=', 1)
+    for pair in tag_string.split(","):
+        if "=" in pair:
+            key, value = pair.split("=", 1)
             tags[key.strip()] = value.strip()
 
     return tags
@@ -108,17 +111,18 @@ def parse_status_filters(status_string: str) -> list[str]:
     if not status_string:
         return []
 
-    return [status.strip() for status in status_string.split(',')]
+    return [status.strip() for status in status_string.split(",")]
 
 
-@click.command('aws-list-cloudformation-stacks')
-@click.option('--name-prefix', '-p', help='Filter stacks by name prefix')
-@click.option('--name-regex', '-r', help='Filter stacks by name regex pattern')
-@click.option('--tags', '-t', help='Filter by tags (format: key1=value1,key2=value2)')
-@click.option('--status', '-s', help='Filter by stack status (comma-separated)')
+@click.command("aws-list-cloudformation-stacks")
+@click.option("--name-prefix", "-p", help="Filter stacks by name prefix")
+@click.option("--name-regex", "-r", help="Filter stacks by name regex pattern")
+@click.option("--tags", "-t", help="Filter by tags (format: key1=value1,key2=value2)")
+@click.option("--status", "-s", help="Filter by stack status (comma-separated)")
 @common_options
-def cli(name_prefix, name_regex, tags, status, profile, region, output_format,
-        limit, output_fields, no_header, verbose):
+def cli(
+    name_prefix, name_regex, tags, status, profile, region, output_format, limit, output_fields, no_header, verbose
+):
     """List CloudFormation stacks with filtering options.
 
     Examples:
@@ -160,7 +164,7 @@ def cli(name_prefix, name_regex, tags, status, profile, region, output_format,
         name_regex=name_regex,
         stack_status_filter=status_filters,
         profile=profile,
-        verbose=verbose
+        verbose=verbose,
     )
 
     # Apply limit and format output
@@ -168,6 +172,5 @@ def cli(name_prefix, name_regex, tags, status, profile, region, output_format,
     format_output(limited_stacks, output_format, output_fields, no_header)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()
-

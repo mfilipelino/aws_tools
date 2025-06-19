@@ -182,4 +182,3 @@ class CloudFormation:
 
 
 cloudformation_client = CloudFormation()
-

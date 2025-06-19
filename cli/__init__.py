@@ -14,6 +14,7 @@ def cli_group():
     """AWS Operations CLI tool"""
     pass
 
+
 # Add commands to the group
 cli_group.add_command(aws_list_athena_cli)
 cli_group.add_command(aws_list_glue_cli)
@@ -25,5 +26,5 @@ cli_group.add_command(aws_list_stepfunctions_cli)
 # For setup.py entry_points
 main = cli_group
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
