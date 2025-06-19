@@ -1,0 +1,22 @@
+[bandit]
+# Bandit configuration file
+# https://bandit.readthedocs.io/en/latest/config.html
+
+# Directories to exclude from scanning
+exclude_dirs = ['tests', '.venv', 'venv', '__pycache__', '.git']
+
+# Test IDs to skip (comma-separated)
+# B101: Test for use of assert
+# B601: Test for shell injection within Paramiko
+skips = ['B101']
+
+# Test IDs to include (if specified, only these tests will run)
+# tests = ['B201', 'B301']
+
+# Severity level filter (LOW, MEDIUM, HIGH)
+# Only report issues of this severity or higher
+# severity = MEDIUM
+
+# Confidence level filter (LOW, MEDIUM, HIGH) 
+# Only report issues of this confidence or higher
+# confidence = MEDIUM
