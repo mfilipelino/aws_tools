@@ -6,10 +6,12 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "amazon-kclpy==2.0.6",
-    "boto3>=1.24.34",
+    "boto3>=1.26.0",
     "botocore>=1.27.34",
+    "click>=8.0.0",
+    "tabulate>=0.9.0",
     "ipython>=8.4.0",
-    "mimesis>=5.5.0",
+    "mimesis>=11.1.0",
     "duckdb>=0.10.0",
     "pandas>=1.0.0",
 ]
@@ -17,18 +19,27 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff>=0.8.0",
+    "bandit>=1.7.0",
+    "safety>=3.0.0",
+    "mypy>=1.0.0",
 ]
 
 [project.scripts]
 export-metadata = "scripts.export_metadata:main"
 kinesis-cli = "scripts.kinesis_cli:main"
+aws-list-s3-objects = "cli.list_s3:cli"
+aws-list-glue-jobs = "cli.list_glue:cli"
+aws-list-sagemaker-jobs = "cli.list_sagemaker:cli"
+aws-list-kinesis-streams = "cli.list_kinesis:cli"
+aws-list-athena-tables = "cli.list_athena:cli"
+aws-list-cloudformation-stacks = "cli.list_cloudformation:cli"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["s3", "kinesis", "glue", "scripts"]
+packages = ["s3", "kinesis", "glue", "scripts", "cli", "cloudformation"]
 
 [tool.ruff]
 target-version = "py39"
@@ -68,4 +79,9 @@ line-ending = "auto"
 managed = true
 dev-dependencies = [
     "ruff>=0.8.0",
+    "bandit>=1.7.0",
+    "safety>=3.0.0",
+    "mypy>=1.0.0",
 ]
+
+[tool.uv.sources]

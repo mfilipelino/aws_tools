@@ -1,51 +1,54 @@
-.PHONY: venv install install-dev build test tests lint format clean security bandit safety typecheck quality
+.PHONY: venv install install-dev build test tests lint format clean security bandit safety typecheck quality sync
 
 # Create virtual environment using UV
 venv:
 	uv venv .venv --python 3.9
 
-# Install dependencies using UV
+# Install project dependencies using UV
 install:
-	uv pip install -r requirements.txt
-	uv pip install ruff
+	uv sync
 
 # Install development dependencies including security tools
-install-dev: install
-	uv pip install bandit safety mypy
+install-dev:
+	uv sync --dev
 
 # Build project (create venv and install dependencies)
-build: venv install
+build: venv install-dev
+
+# Sync dependencies (alias for install)
+sync:
+	uv sync --dev
 
 # Run tests
 test tests:
-	.venv/bin/python -m unittest discover -s tests -p '*_test.py'
+	uv run python -m unittest discover -s tests -p '*_test.py'
 
 # Run linter
 lint:
-	.venv/bin/ruff check .
+	uv run ruff check .
 
 # Format code
 format:
-	.venv/bin/ruff format .
+	uv run ruff format .
 
 # Fix linting issues automatically
 fix:
-	.venv/bin/ruff check --fix .
+	uv run ruff check --fix .
 
 # Security scanning with bandit
 bandit:
 	@echo "🔒 Running security scan with bandit..."
-	.venv/bin/bandit -r cli/ s3/ kinesis/ glue/ scripts/ -f json -o bandit-report.json || true
+	uv run bandit -r cli/ s3/ kinesis/ glue/ scripts/ cloudformation/ -f json -o bandit-report.json || true
 	@echo "📄 JSON report saved to bandit-report.json"
-	.venv/bin/bandit -r cli/ s3/ kinesis/ glue/ scripts/ --severity-level medium --confidence-level medium
+	uv run bandit -r cli/ s3/ kinesis/ glue/ scripts/ cloudformation/ --severity-level medium --confidence-level medium
 
 # Check for known security vulnerabilities in dependencies
 safety:
 	@echo "🛡️  Checking dependencies for security vulnerabilities..."
-	.venv/bin/safety check --output json > safety-report.json 2>/dev/null || true
+	uv run safety check --output json > safety-report.json 2>/dev/null || true
 	@echo "📄 JSON report saved to safety-report.json"
 	@echo "⚠️  Note: safety check is deprecated, consider upgrading for newer features"
-	.venv/bin/safety check || echo "❌ Some vulnerabilities found in dependencies"
+	uv run safety check || echo "❌ Some vulnerabilities found in dependencies"
 
 # Run all security checks
 security: bandit safety
@@ -54,7 +57,7 @@ security: bandit safety
 # Type checking with mypy
 typecheck:
 	@echo "🔍 Running type checks with mypy..."
-	.venv/bin/mypy . --ignore-missing-imports --show-error-codes || true
+	uv run mypy . --ignore-missing-imports --show-error-codes || true
 
 # Run comprehensive quality checks
 quality: lint typecheck security
