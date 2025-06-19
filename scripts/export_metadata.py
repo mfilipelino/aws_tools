@@ -155,6 +155,36 @@ def list_sagemaker_processing_jobs(name_contains: str = "", days: int = 7) -> It
             }
 
 
+def list_cloudformation_stacks(name_prefix: str = "", days: int = 7) -> Iterable[dict]:
+    client = create_client("cloudformation")
+    paginator = client.get_paginator("list_stacks")
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+    for page in paginator.paginate():
+        for stack in page.get("StackSummaries", []):
+            creation = stack.get("CreationTime")
+            stack_name = stack.get("StackName", "")
+
+            # Apply time filter
+            if creation and creation < cutoff:
+                continue
+
+            # Apply name prefix filter
+            if name_prefix and not stack_name.startswith(name_prefix):
+                continue
+
+            yield {
+                "stack_name": stack_name,
+                "stack_id": stack.get("StackId"),
+                "creation_time": creation,
+                "last_updated_time": stack.get("LastUpdatedTime"),
+                "deletion_time": stack.get("DeletionTime"),
+                "stack_status": stack.get("StackStatus"),
+                "stack_status_reason": stack.get("StackStatusReason"),
+                "template_description": stack.get("TemplateDescription"),
+            }
+
+
 def save_to_duckdb(rows: Iterable[dict], table_name: str, db_path: str) -> None:
     con = duckdb.connect(db_path)
     df = pd.DataFrame(rows)
@@ -212,6 +242,12 @@ if __name__ == "__main__":
     sm_proc_parser.add_argument("--db-path", default="aws_metadata.duckdb")
     sm_proc_parser.add_argument("--table", default="sm_processing_jobs")
 
+    cf_parser = subparsers.add_parser("cloudformation")
+    cf_parser.add_argument("--name-prefix", default="", help="Filter stacks by name prefix")
+    cf_parser.add_argument("--days", type=int, default=7, help="Filter stacks created in the last N days")
+    cf_parser.add_argument("--db-path", default="aws_metadata.duckdb")
+    cf_parser.add_argument("--table", default="cloudformation_stacks")
+
     args = parser.parse_args()
 
     if args.command == "s3":
@@ -237,6 +273,9 @@ if __name__ == "__main__":
         save_to_duckdb(items, args.table, args.db_path)
     elif args.command == "sm-processing-jobs":
         items = list(list_sagemaker_processing_jobs(args.name_contains, args.days))
+        save_to_duckdb(items, args.table, args.db_path)
+    elif args.command == "cloudformation":
+        items = list(list_cloudformation_stacks(args.name_prefix, args.days))
         save_to_duckdb(items, args.table, args.db_path)
     else:
         parser.print_help()
