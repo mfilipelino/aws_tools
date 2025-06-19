@@ -30,6 +30,11 @@ dist/
 build/
 *.egg-info/
 
+# Security and quality reports
+bandit-report.json
+safety-report.json
+mypy-report.txt
+
 # UV
 .uv/
 uv.lock
