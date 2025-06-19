@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Union
 
 import boto3
 from botocore.exceptions import ClientError
@@ -9,10 +10,10 @@ logger = logging.getLogger(__name__)
 profile_name = os.environ.get("PROFILE_NAME", "sandbox")
 
 
-def create_s3_client(profile_name):
+def create_s3_client(profile_name, region_name=None):
     """Create a boto3 S3 client using the configured AWS profile."""
     session = boto3.Session(profile_name=profile_name)
-    return session.client("s3")
+    return session.client("s3", region_name=region_name)
 
 
 class S3:
@@ -33,7 +34,7 @@ class S3:
             logger.error(e)
             return False
 
-    def create_bucket_if_not_exist(self, bucket_name: str, region: str = None) -> bool:
+    def create_bucket_if_not_exist(self, bucket_name: str, region: Union[str, None] = None) -> bool:
         """Create an S3 bucket in a specified region
         If a region is not specified, the bucket is created in the S3 default
         region (us-east-1).

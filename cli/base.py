@@ -33,7 +33,7 @@ class OutputFormatter:
                 if not no_header:
                     print('\t'.join(fields))
 
-            values = [str(item.get(field, '')) for field in fields]
+            values = [str(item.get(field, '')) for field in fields or []]
             print('\t'.join(values))
 
     @staticmethod
@@ -49,7 +49,7 @@ class OutputFormatter:
                 if not no_header:
                     writer.writerow(fields)
 
-            values = [item.get(field, '') for field in fields]
+            values = [item.get(field, '') for field in fields or []]
             writer.writerow(values)
 
     @staticmethod
