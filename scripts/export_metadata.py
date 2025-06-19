@@ -1,7 +1,7 @@
 import argparse
 import os
+from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import Iterable, List
 
 import boto3
 import duckdb
@@ -72,7 +72,7 @@ def list_glue_job_runs(job_name: str, days: int = 7) -> Iterable[dict]:
             }
 
 
-def batch_get_query_execution(client, query_ids: List[str]):
+def batch_get_query_execution(client, query_ids: list[str]):
     return client.batch_get_query_execution(QueryExecutionIds=query_ids)
 
 
@@ -83,7 +83,7 @@ def list_athena_query_errors(workgroup: str = "primary", days: int = 7) -> Itera
     for page in paginator.paginate(WorkGroup=workgroup):
         qids = page.get("QueryExecutionIds", [])
         for i in range(0, len(qids), 50):
-            batch = qids[i:i + 50]
+            batch = qids[i : i + 50]
             resp = batch_get_query_execution(client, batch)
             for qe in resp.get("QueryExecutions", []):
                 status = qe.get("Status", {})
@@ -240,4 +240,3 @@ if __name__ == "__main__":
         save_to_duckdb(items, args.table, args.db_path)
     else:
         parser.print_help()
-
