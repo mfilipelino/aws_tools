@@ -2,6 +2,63 @@
 
 This repository provides utilities for interacting with AWS services.
 
+## Prerequisites
+
+Before getting started, ensure you have the following tools installed:
+
+### Required Tools
+
+1. **UV** - Modern Python package manager
+   ```bash
+   # Install via official installer
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   # Or via Homebrew (macOS)
+   brew install uv
+   ```
+
+2. **Python 3.9+** - Required Python version
+   ```bash
+   # UV can install Python for you
+   uv python install 3.9
+   ```
+
+3. **Make** - Build automation tool
+   - Usually pre-installed on macOS/Linux
+   - macOS: `xcode-select --install` if not present
+
+4. **AWS CLI** - For AWS credentials management
+   ```bash
+   brew install awscli  # macOS
+   # Or see: https://aws.amazon.com/cli/
+   ```
+
+### Optional Tools
+
+- **act** - Run GitHub Actions locally
+  ```bash
+  brew install act  # macOS
+  # Or see: https://github.com/nektos/act
+  ```
+
+### Quick Setup
+
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd aws_tools
+
+# 2. Set up the development environment
+make build  # Creates venv and installs all dependencies
+
+# 3. Configure AWS credentials
+aws configure --profile sandbox
+# Or use a different profile:
+export PROFILE_NAME=your-profile
+
+# 4. Verify installation
+make test
+```
+
 ## CLI Commands
 
 Prefix-based CLI commands that complement AWS CLI with pipe-friendly output:
