@@ -6,15 +6,15 @@ venv:
 
 # Install dependencies using UV
 install:
-	uv pip install -r requirements.txt
-	uv pip install ruff
+        uv pip install -r requirements.txt
+        uv pip install ruff pytest
 
 # Build project (create venv and install dependencies)
 build: venv install
 
 # Run tests
 test tests:
-	.venv/bin/python -m unittest discover -s tests -p '*_test.py'
+        .venv/bin/python -m pytest
 
 # Run linter
 lint:
