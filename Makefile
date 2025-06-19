@@ -21,7 +21,7 @@ sync:
 
 # Run tests
 test tests:
-	uv run python -m unittest discover -s tests -p '*_test.py'
+	uv run python -m pytest
 
 # Run linter
 lint:
